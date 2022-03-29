@@ -1,3 +1,17 @@
+# Global variables
+features <- getPeakSet(ArchRProjShiny),
+loops <-  getCoAccessibility(ArchRProjShiny),
+minCells <-  25,
+baseSize <-  10,
+borderWidth <-  0.5,
+tickWidth <-  0.5,
+facetbaseSize <-  12,
+geneAnnotation <- getGeneAnnotation(ArchRProjShiny)
+browserTheme <- "cosmo",
+tileSize <- ArchRProjShiny@projectMetadata$tileSize
+groupBy <- ArchRProjShiny@projectMetadata$groupBy
+threads <- getArchRThreads()
+
 #Determine Grouping Methods
 ccd <- getCellColData(ArchRProj)
 discreteCols <- lapply(seq_len(ncol(ccd)), function(x){

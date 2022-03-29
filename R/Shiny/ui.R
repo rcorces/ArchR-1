@@ -1,7 +1,6 @@
 #####################
 #Shiny App UI
 #####################
-browserTheme <- "cosmo"
 if(!requireNamespace("shinythemes", quietly = TRUE)){
   .logMessage("shinythemes not found! To see a nice theme use :\n\tinstall.packages('shinythemes')\nContinuing wihtout shinythemes!", verbose = verbose, logFile = logFile)
   theme <- NULL

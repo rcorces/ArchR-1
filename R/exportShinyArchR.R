@@ -1,100 +1,3 @@
-#' Export a Shiny App based on ArchRProj
-#' 
-#' Generate all files required for an autonomous shiny app
-#' This function will open an interactive shiny session in style of a browser track. It allows for normalization of the signal which
-#' enables direct comparison across samples. Note that the genes displayed in this browser are derived from your `geneAnnotation`
-#' (i.e. the `BSgenome` object you used) so they may not match other online genome browsers that use different gene annotations.
-#'
-#' @param ArchRProj An `ArchRProject` object.
-#' @param features A `GRanges` object containing the "features" to be plotted via the "featureTrack". This should be thought of as a
-#' bed track. i.e. the set of peaks obtained using `getPeakSet(ArchRProj))`. 
-#' @param loops A `GRanges` object containing the "loops" to be plotted via the "loopTrack".
-#' This `GRanges` object start represents the center position of one loop anchor and the end represents the center position of another loop anchor. 
-#' A "loopTrack" draws an arc between two genomic regions that show some type of interaction. This type of track can be used 
-#' to display chromosome conformation capture data or co-accessibility links obtained using `getCoAccessibility()`. 
-#' @param minCells The minimum number of cells contained within a cell group to allow for this cell group to be plotted. This argument
-#' can be used to exclude pseudo-bulk replicates generated from low numbers of cells.
-#' @param baseSize The numeric font size to be used in the plot. This applies to all plot labels.
-#' @param borderWidth The numeric line width to be used for plot borders.
-#' @param tickWidth The numeric line width to be used for axis tick marks.
-#' @param facetbaseSize The numeric font size to be used in the facets (gray boxes used to provide track labels) of the plot.
-#' @param geneAnnotation The `geneAnnotation` object to be used for plotting the "geneTrack" object. See `createGeneAnnotation()` for more info.
-#' @param browserTheme A `shinytheme` from shinythemes for viewing the ArchR Browser. If not installed this will be NULL.
-#' To install try devtools::install_github("rstudio/shinythemes").
-#' @param threads The number of threads to use for parallel execution.
-#' @param verbose A boolean value that determines whether standard output should be printed.
-#' @param logFile The path to a file to be used for logging ArchR output.
-#' @export
-exportShinyArchR <- function(
-  ArchRProj = NULL,
-  outputDir = "Shiny",
-  #where Shiny files are now. OFFLINE. 
-  #myDir = 
-  geneAnnotation = getGeneAnnotation(ArchRProj),
-  browserTheme = "cosmo",
-  threads = getArchRThreads(),
-  verbose = TRUE,
-  logFile = createLogFile("exportShinyArchR")
-){
-  
-  .validInput(input = ArchRProj, name = "ArchRProj", valid = c("ArchRProj"))
-  # .validInput(input = features, name = "features", valid = c("granges", "grangeslist", "null"))
-  # .validInput(input = loops, name = "loops", valid = c("granges", "grangeslist", "null"))
-  # .validInput(input = minCells, name = "minCells", valid = c("integer"))
-  # .validInput(input = baseSize, name = "baseSize", valid = c("integer"))
-  # .validInput(input = borderWidth, name = "borderWidth", valid = c("numeric"))
-  # .validInput(input = tickWidth, name = "tickWidth", valid = c("numeric"))
-  # .validInput(input = facetbaseSize, name = "facetbaseSize", valid = c("numeric"))
-  geneAnnotation <- .validGeneAnnotation(geneAnnotation)
-  .validInput(input = browserTheme, name = "browserTheme", valid = c("character"))
-  .validInput(input = threads, name = "threads", valid = c("integer"))
-  .validInput(input = verbose, name = "verbose", valid = c("boolean"))
-  .validInput(input = logFile, name = "logFile", valid = c("character"))
-  
-  .startLogging(logFile=logFile)
-  .logThis(mget(names(formals()),sys.frame(sys.nframe())), "exportShinyArchR Input-Parameters", logFile = logFile)
-  
-  .requirePackage("shiny", installInfo = 'install.packages("shiny")')
-  .requirePackage("rhandsontable", installInfo = 'install.packages("rhandsontable")')
-
-# Make directory for Shiny App 
-  if(!dir.exists(outputDir)) {
-    
-    dir.create(outputDir)
-  # if(length(dir(outputDir,  all.files = TRUE, include.dirs = TRUE, no.. = TRUE)) > 0){
-  #   stop("Please specify a new or empty directory")
-  # }
-
-  filesUrl <- c(
-  )
-  
-  downloadFiles <- lapply(seq_along(filesUrl), function(x){
-    download.file(
-      url = filesUrl[x], 
-      destfile = file.path("HemeFragments", basename(filesUrl[x]))
-    ) 
-  }
-  } else {
-    message("Using existing Shiny files...")
-    
-  }
-
-  # Create a copy of the ArchRProj object
-  ArchRProjShiny <- ArchRProj
-  # Add metadata to ArchRProjShiny  
-  ArchRProjShiny@projectMetadata[["tileSize"]] <- tileSize
-  ArchRProjShiny@projectMetadata[["groupBy"]] <- groupBy
-  
-# Create fragment files 
-.getGroupFragsFromProj(ArchRProj = ArchRProjShiny, groupBy = groupBy)
-
-# Create coverage objects
-.getClusterCoverage(ArchRProj = ArchRProjShiny, tileSize = tileSize, groupBy = groupBy)
-
-  ## ready to launch ---------------------------------------------------------------
-  message("App created! To launch, run shiny::runApp('", outputDir, "')")
-#  runApp("myappdir")
-  
 # Bulk Tracks Methods -----------------------------------------------------------
 
 ## Create fragment files -----------------------------------------------------------
@@ -122,7 +25,7 @@ keepFilteredChromosomes <- function (x, remove = c("chrM"), underscore = TRUE, s
 .getGroupFragsFromProj <- function(
   ArchRProj = NULL,
   groupBy = NULL,
-  outDir = "Shiny/fragments"
+  outDir = "Shiny/fragments/"
 ){
   
   dir.create(outDir, showWarnings = FALSE) 
@@ -143,7 +46,7 @@ keepFilteredChromosomes <- function (x, remove = c("chrM"), underscore = TRUE, s
     fragments <- unlist(fragments, use.names = FALSE) 
     # filter Fragments
     ATACFragments <- keepFilteredChromosomes(fragments)
-    saveRDS(ATACFragments, paste0(outdir,"/fragments/",cluster, "_fragments.rds"))
+    saveRDS(ATACFragments, paste0(outDir, cluster, "_fragments.rds"))
   }
 }
 
@@ -170,7 +73,7 @@ validGRanges <- function(gr = NULL){
   ArchRProj = NULL,
   tileSize = 100, 
   groupBy = "Clusters",
-  outDir = "Shiny/coverage"
+  outDir = "Shiny/coverage/"
   # geneAnnotation = getGeneAnnotation(ArchRProj),
 ){
   fragfiles = list.files(path = "./Shiny/fragments", full.names = TRUE)
@@ -211,8 +114,96 @@ validGRanges <- function(gr = NULL){
     message("creating binned coverage for cluster ",clusters[clusteridx], "...")
     #each value is multiplied by that weight.
     binnedCoverage <- coverage(bins, weight = bins$reads)
-    saveRDS(binnedCoverage, paste0(outdir,"/coverage/",clusters[clusteridx], "_cvg.rds"))
+    saveRDS(binnedCoverage, paste0(outDir,clusters[clusteridx], "_cvg.rds"))
   }
 }
 
+
+#' Export a Shiny App based on ArchRProj
+#' 
+#' Generate all files required for an autonomous Shiny app to display your browser tracks.
+#'
+#' @param ArchRProj An `ArchRProject` object loaded in the environment. Can do this using: loadArchRProject("path to ArchRProject/")
+#' @param threads The number of threads to use for parallel execution.
+#' @param verbose A boolean value that determines whether standard output should be printed.
+#' @param logFile The path to a file to be used for logging ArchR output.
+#' @export
+exportShinyArchR <- function(
+  ArchRProj = NULL,
+  outDir = "Shiny",
+  #where Shiny files are now. OFFLINE. 
+  #myDir = 
+  groupBy = "Clusters",
+  tileSize = 100,
+  threads = getArchRThreads(),
+  verbose = TRUE,
+  logFile = createLogFile("exportShinyArchR")
+){
+  
+  .validInput(input = ArchRProj, name = "ArchRProj", valid = c("ArchRProj"))
+  # .validInput(input = features, name = "features", valid = c("granges", "grangeslist", "null"))
+  # .validInput(input = loops, name = "loops", valid = c("granges", "grangeslist", "null"))
+  # .validInput(input = minCells, name = "minCells", valid = c("integer"))
+  # .validInput(input = baseSize, name = "baseSize", valid = c("integer"))
+  # .validInput(input = borderWidth, name = "borderWidth", valid = c("numeric"))
+  # .validInput(input = tickWidth, name = "tickWidth", valid = c("numeric"))
+  # .validInput(input = facetbaseSize, name = "facetbaseSize", valid = c("numeric"))
+  # geneAnnotation <- .validGeneAnnotation(geneAnnotation)
+  # .validInput(input = browserTheme, name = "browserTheme", valid = c("character"))
+  .validInput(input = threads, name = "threads", valid = c("integer"))
+  .validInput(input = verbose, name = "verbose", valid = c("boolean"))
+  .validInput(input = logFile, name = "logFile", valid = c("character"))
+  
+  .startLogging(logFile=logFile)
+  .logThis(mget(names(formals()),sys.frame(sys.nframe())), "exportShinyArchR Input-Parameters", logFile = logFile)
+  
+  .requirePackage("shiny", installInfo = 'install.packages("shiny")')
+  .requirePackage("rhandsontable", installInfo = 'install.packages("rhandsontable")')
+
+# Make directory for Shiny App 
+  if(!dir.exists(outDir)) {
+    
+    dir.create(outDir)
+  # if(length(dir(outDir,  all.files = TRUE, include.dirs = TRUE, no.. = TRUE)) > 0){
+  #   stop("Please specify a new or empty directory")
+  # }
+
+  filesUrl <- c(
+    "https://raw.githubusercontent.com/paupaiz/ArchR/Shiny_export/R/Shiny/app.R"
+  )
+  
+  downloadFiles <- lapply(seq_along(filesUrl), function(x){
+    download.file(
+      url = filesUrl[x], 
+      destfile = file.path(outDir, basename(filesUrl[x]))
+    )
+    })
+  
+  }else{
+    message("Using existing Shiny files...")
+  }
+
+  # Create a copy of the ArchRProj object
+  ArchRProjShiny <- ArchRProj
+  # Add metadata to ArchRProjShiny
+  
+  if (is.na(paste0("ArchRProj$", groupBy))) {
+    stop("groupBy is not part of cellColData")
+  } else if ((any(is.na(paste0("ArchRProj$", groupBy))))) {
+    stop("incomplete data. some NA observations for groupBy")
+  } else {
+    ArchRProjShiny@projectMetadata[["groupBy"]] <- groupBy
+  }
+  
+  ArchRProjShiny@projectMetadata[["tileSize"]] <- tileSize
+  
+# Create fragment files 
+.getGroupFragsFromProj(ArchRProj = ArchRProjShiny, groupBy = groupBy)
+
+# Create coverage objects
+.getClusterCoverage(ArchRProj = ArchRProjShiny, tileSize = tileSize, groupBy = groupBy)
+
+  ## ready to launch ---------------------------------------------------------------
+  message("App created! To launch, run shiny::runApp('", outDir, "')")
+#  runApp("myappdir")
 }
