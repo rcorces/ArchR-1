@@ -7,21 +7,16 @@ server <- function(
   session = session
 ){
   
-  ### What would need to be changed in server.R
-  # tileSize <- 
-  # ArchRProj <- 
-  # groupBy <- 
-    
   output$Metadata <- renderRHandsontable({
-    groups <- gtools::mixedsort(unique(ccd[,input$grouping]))
+    groups <- gtools::mixedsort(unique(ccd[,groupBy]))
     mdata <- data.frame(
-      groupBy = input$grouping,
+      groupBy = ArchRProjShiny@projectMetadata$groupBy,
       include = rep(TRUE,length(groups)), 
       group = groups, 
       color = paletteDiscrete(values = groups)[groups], 
-      nCells = as.vector(table(ccd[,input$grouping])[groups]),
-      medianTSS = getGroupSummary(ArchRProj = ArchRProj, select = "TSSEnrichment", summary = "median", groupBy = input$grouping)[groups],
-      medianFragments = getGroupSummary(ArchRProj = ArchRProj, select = "nFrags", summary = "median", groupBy = input$grouping)[groups],
+      nCells = as.vector(table(ccd[, ArchRProjShiny@projectMetadata$groupBy])[groups]),
+      medianTSS = getGroupSummary(ArchRProj = ArchRProjShiny, select = "TSSEnrichment", summary = "median", groupBy = groupBy)[groups],
+      medianFragments = getGroupSummary(ArchRProj = ArchRProjShiny, select = "nFrags", summary = "median", groupBy = groupBy)[groups],
       stringsAsFactors = FALSE
     )
     rownames(mdata) <- NULL
@@ -47,7 +42,7 @@ server <- function(
   }, priority = 200)
   
   output$checkbox <- renderUI({
-    choice <- gtools::mixedsort(unique(ccd[,input$grouping,drop=TRUE]))
+    choice <- gtools::mixedsort(unique(ccd[, groupBy,drop=TRUE]))
     checkboxGroupInput("checkbox","Select Groups", choices = choice, selected = choice)
   })    
   
@@ -107,15 +102,16 @@ server <- function(
           groupDF <- tryCatch({
             isolate(hot_to_r(input$Metadata))
           },error=function(x){
-            groups <- gtools::mixedsort(unique(ccd[,isolate(input$grouping)]))
+            groups <- gtools::mixedsort(unique(ccd[,isolate(ArchRProjShiny@projectMetadata$groupBy)]))
             mdata <- data.frame(
-              groupBy = input$grouping,
+              # groupBy = input$grouping,
+              groupBy = ArchRProjShiny@projectMetadata$groupBy
               include = rep(TRUE,length(groups)), 
               group = groups, 
               color = paletteDiscrete(values = groups)[groups], 
-              nCells = as.vector(table(ccd[,input$grouping])[groups]),
-              medianTSS = getGroupSummary(ArchRProj = ArchRProj, select = "TSSEnrichment", summary = "median", groupBy = input$grouping)[groups],
-              medianFragments = getGroupSummary(ArchRProj = ArchRProj, select = "nFrags", summary = "median", groupBy = input$grouping)[groups],
+              nCells = as.vector(table(ccd[,groupBy])[groups]),
+              medianTSS = getGroupSummary(ArchRProj = ArchRProjShiny, select = "TSSEnrichment", summary = "median", groupBy = groupBy)[groups],
+              medianFragments = getGroupSummary(ArchRProj = ArchRProjShiny, select = "nFrags", summary = "median", groupBy = groupBy)[groups],
               stringsAsFactors = FALSE
             )
             rownames(mdata) <- NULL
@@ -123,7 +119,7 @@ server <- function(
           })
           
           if(groupDF$groupBy[1] != groupBy){
-            groups <- gtools::mixedsort(unique(ccd[,isolate(input$grouping)]))
+            groups <- gtools::mixedsort(unique(ccd[,isolate(groupBy)]))
             groupDF <- data.frame(
               groupBy = groupBy,
               include = rep(TRUE,length(groups)), 
@@ -156,10 +152,11 @@ server <- function(
           
           ylim <- c(0, isolate(input$ymax))
           normMethod <- isolate(input$normATAC)
-          tileSize <- isolate(input$tile_size)
-          
+          # tileSize <- isolate(input$tile_size)
+          tileSize <- ArchRProjShiny@projectMetadata$tileSize
+            
           p <- .bulkTracks(
-            ArchRProj = ArchRProj, 
+            ArchRProj = ArchRProjShiny, 
             region = region, 
             tileSize = tileSize, 
             useGroups = useGroups,
@@ -270,7 +267,7 @@ server <- function(
         if(!exists("tmpArchRP")){
           
           #User Inputs
-          groupBy <- isolate(input$grouping)
+          groupBy <- ArchRProjShiny@projectMetadata$groupBy
           groupDF <- isolate(hot_to_r(input$Metadata))
           useGroups <- groupDF[groupDF[,"include"],"group"]
           
@@ -298,10 +295,10 @@ server <- function(
           
           ylim <- c(0, isolate(input$ymax))
           normMethod <- isolate(input$normATAC)
-          tileSize <- isolate(input$tile_size)
+          tileSize <- ArchRProjShiny@projectMetadata$tileSize
           
           p <- .bulkTracks(
-            ArchRProj = ArchRProj, 
+            ArchRProj = ArchRProjShiny, 
             region = tmpArchRRegion, 
             tileSize = tileSize, 
             useGroups = useGroups,

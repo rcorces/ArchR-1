@@ -32,12 +32,6 @@ extendGR2 <-  function(gr = NULL, upstream = NULL, downstream = NULL){
   return(gr)
 }
 
-#' @export
-ArchRBrowserTrack <- function(...){
-  .Deprecated("plotBrowserTrack")
-  plotBrowserTrack(...)
-}
-
 #' Plot an ArchR Region Track
 #' 
 #' This function will plot the coverage at an input region in the style of a browser track. It allows for normalization of the signal
@@ -211,32 +205,6 @@ plotBrowserTrack <- function(
         tickWidth = tickWidth,
         facetbaseSize = facetbaseSize,
         normMethod = normMethod,
-        geneAnnotation = geneAnnotation,
-        title = title,
-        useGroups = useGroups,
-        tstart = tstart,
-        logFile = logFile) + theme(plot.margin = unit(c(0.35, 0.75, 0.35, 0.75), "cm"))
-    }
-    
-    ##########################################################
-    # Single-cell Tracks
-    ##########################################################
-    if("sctrack" %in% tolower(plotSummary)){
-      .logDiffTime(sprintf("Adding SC Tracks (%s of %s)",x,length(region)), t1=tstart, verbose=verbose, logFile=logFile)
-      plotList$sctrack <- .scTracks(
-        ArchRProj = ArchRProj, 
-        region = region[x], 
-        tileSize = tileSize, 
-        groupBy = groupBy,
-        threads = threads, 
-        minCells = 5,
-        maxCells = scCellsMax,
-        pal = pal,
-        baseSize = baseSize,
-        borderWidth = borderWidth,
-        tickWidth = tickWidth,
-        scTileSize = scTileSize,
-        facetbaseSize = facetbaseSize,
         geneAnnotation = geneAnnotation,
         title = title,
         useGroups = useGroups,

@@ -28,13 +28,8 @@
 exportShinyArchR <- function(
   ArchRProj = NULL,
   outputDir = "Shiny",
-  features = getPeakSet(ArchRProj),
-  loops = getCoAccessibility(ArchRProj),
-  # minCells = 25,
-  # baseSize = 10,
-  borderWidth = 0.5,
-  tickWidth = 0.5,
-  facetbaseSize = 12,
+  #where Shiny files are now. OFFLINE. 
+  #myDir = 
   geneAnnotation = getGeneAnnotation(ArchRProj),
   browserTheme = "cosmo",
   threads = getArchRThreads(),
@@ -57,37 +52,44 @@ exportShinyArchR <- function(
   .validInput(input = logFile, name = "logFile", valid = c("character"))
   
   .startLogging(logFile=logFile)
-  .logThis(mget(names(formals()),sys.frame(sys.nframe())), "ArchRBrowser Input-Parameters", logFile = logFile)
+  .logThis(mget(names(formals()),sys.frame(sys.nframe())), "exportShinyArchR Input-Parameters", logFile = logFile)
   
   .requirePackage("shiny", installInfo = 'install.packages("shiny")')
   .requirePackage("rhandsontable", installInfo = 'install.packages("rhandsontable")')
 
 # Make directory for Shiny App 
-  if(!dir.exists(outputDir)) dir.create(outputDir)
-  if(length(dir(outputDir,  all.files = TRUE, include.dirs = TRUE, no.. = TRUE)) > 0){
-    stop("Please specify a new or empty directory")
+  if(!dir.exists(outputDir)) {
+    
+    dir.create(outputDir)
+  # if(length(dir(outputDir,  all.files = TRUE, include.dirs = TRUE, no.. = TRUE)) > 0){
+  #   stop("Please specify a new or empty directory")
+  # }
+
+  filesUrl <- c(
+  )
+  
+  downloadFiles <- lapply(seq_along(filesUrl), function(x){
+    download.file(
+      url = filesUrl[x], 
+      destfile = file.path("HemeFragments", basename(filesUrl[x]))
+    ) 
+  }
+  } else {
+    message("Using existing Shiny files...")
+    
   }
 
+  # Create a copy of the ArchRProj object
+  ArchRProjShiny <- ArchRProj
+  # Add metadata to ArchRProjShiny  
+  ArchRProjShiny@projectMetadata[["tileSize"]] <- tileSize
+  ArchRProjShiny@projectMetadata[["groupBy"]] <- groupBy
+  
 # Create fragment files 
-.getGroupFragsFromProj(ArchRProj = ArchRProj, groupBy = groupBy)
+.getGroupFragsFromProj(ArchRProj = ArchRProjShiny, groupBy = groupBy)
 
 # Create coverage objects
-.getClusterCoverage(ArchRProj = ArchRProj, tileSize = tileSize, groupBy = groupBy)
-
-# Create a copy of the ArchRProj object 
-# Add metadata to ArchRProj   
-  cells = ArchRProj$cellNames
-  data = replicate(length(cells), tileSize)
-  ArchRProj <- addCellColData(ArchRProj = ArchRProj, data = data, 
-                              cells = cells, name = "tileSize")
-  
-#' Generate code files required for shiny app (one dataset)
-#'
-#' Generate code files required for shiny app containing only one dataset. In 
-#' particular, two R scripts will be generated, namely \code{server.R} and 
-#' \code{ui.R}.  
-
-  ## Clone Github repo with ui.R and server.R ----------------------------------------
+.getClusterCoverage(ArchRProj = ArchRProjShiny, tileSize = tileSize, groupBy = groupBy)
 
   ## ready to launch ---------------------------------------------------------------
   message("App created! To launch, run shiny::runApp('", outputDir, "')")
@@ -213,4 +215,4 @@ validGRanges <- function(gr = NULL){
   }
 }
 
-  
+}
