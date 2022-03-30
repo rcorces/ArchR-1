@@ -97,7 +97,7 @@ server <- function(
           setProgress(0.1)
           
           #User Inputs
-        #  groupBy <- isolate(input$grouping)
+          #  groupBy <- isolate(input$grouping)
           
           groupDF <- tryCatch({
             isolate(hot_to_r(input$Metadata))
@@ -154,7 +154,7 @@ server <- function(
           normMethod <- isolate(input$normATAC)
           # tileSize <- isolate(input$tile_size)
           tileSize <- ArchRProjShiny@projectMetadata$tileSize
-            
+          
           p <- .bulkTracks(
             ArchRProj = ArchRProjShiny, 
             region = region, 
@@ -406,5 +406,3 @@ server <- function(
   })
   
 }
-
-

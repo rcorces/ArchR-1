@@ -11,6 +11,7 @@ browserTheme <- "cosmo"
 tileSize <- ArchRProjShiny@projectMetadata$tileSize
 groupBy <- ArchRProjShiny@projectMetadata$groupBy
 threads <- getArchRThreads()
+logFile <- createLogFile("runShinyArchR")
 
 #Determine Grouping Methods
 ccd <- getCellColData(ArchRProj)
