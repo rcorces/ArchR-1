@@ -131,8 +131,6 @@ validGRanges <- function(gr = NULL){
 exportShinyArchR <- function(
   ArchRProj = NULL,
   outDir = "Shiny",
-  #where Shiny files are now. OFFLINE. 
-  #myDir = 
   groupBy = "Clusters",
   tileSize = 100,
   threads = getArchRThreads(),
