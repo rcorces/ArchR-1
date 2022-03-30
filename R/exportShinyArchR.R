@@ -167,9 +167,9 @@ exportShinyArchR <- function(
   # }
 
   filesUrl <- c(
-    "https://raw.githubusercontent.com/paupaiz/ArchR/Shiny_export/R/Shiny/app.R"
-    "https://raw.githubusercontent.com/paupaiz/ArchR/Shiny_export/R/Shiny/global.R"
-    "https://raw.githubusercontent.com/paupaiz/ArchR/Shiny_export/R/Shiny/server.R"
+    "https://raw.githubusercontent.com/paupaiz/ArchR/Shiny_export/R/Shiny/app.R",
+    "https://raw.githubusercontent.com/paupaiz/ArchR/Shiny_export/R/Shiny/global.R",
+    "https://raw.githubusercontent.com/paupaiz/ArchR/Shiny_export/R/Shiny/server.R",
     "https://raw.githubusercontent.com/paupaiz/ArchR/Shiny_export/R/Shiny/ui.R"
   )
   
